@@ -1,5 +1,8 @@
 package duongtran.example.storage;
 
+import duongtran.example.storage.objects.Blob;
+import duongtran.example.storage.objects.Tree;
+import duongtran.example.utils.HexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +24,7 @@ import java.util.zip.Deflater;
  */
 public class Database {
     private static final Logger logger = LoggerFactory.getLogger(Database.class);
-
-
-
+    
     private static final String TEMP_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final int TEMP_NAME_LENGTH = 6;
     private static final String TEMP_PREFIX = "tmp_obj_";
@@ -51,53 +52,13 @@ public class Database {
      *
      * @param object The blob objects to store
      * @throws IOException If failed to write the object
-     * @throws NoSuchAlgorithmException If the hash algorithm is not available
      * @throws IllegalArgumentException If an object is null
      */
-    public void store(Blob object) throws IOException, NoSuchAlgorithmException {
+    public void store(ObjectStorage object) throws IOException {
         if (object == null) {
             throw new IllegalArgumentException("Blob object cannot be null");
         }
-
-        byte[] content = formatContent(object);
-        String oid = calculateOid(content);
-        object.setOid(oid);
-        writeObject(oid, content);
-    }
-
-    /**
-     * Formats the content of a blob object according to the specified format.
-     * Object format:
-     *      type
-     *      a space
-     *      length of string
-     *      null byte
-     *      actual object's string
-     * @param object The blob object
-     * @return Formatted content as a byte array
-     */
-    private byte[] formatContent(Blob object) {
-        byte[] stringBytes = object.toString().getBytes(StandardCharsets.ISO_8859_1);
-        String header = String.format("%s %d\0", object.getType(), stringBytes.length);
-        byte[] headerBytes = header.getBytes(StandardCharsets.ISO_8859_1);
-
-        byte[] content = new byte[headerBytes.length + stringBytes.length];
-        System.arraycopy(headerBytes, 0, content, 0, headerBytes.length);
-        System.arraycopy(stringBytes, 0, content, headerBytes.length, stringBytes.length);
-
-        return content;
-    }
-
-
-    /**
-     * Calculates the object ID using SHA-1 hash.
-     * @param content Content to hash
-     * @return Hexadecimal string of the hash
-     * @throws NoSuchAlgorithmException If SHA-1 is not available
-     */
-    private String calculateOid(byte[] content) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
-        return bytesToHex(digest.digest(content));
+        writeObject(object.getOid(), object.getContent());
     }
 
 
@@ -117,11 +78,12 @@ public class Database {
         Path tempPath = dirname.resolve(generateTempName());
 
         try {
-            ensureDirectoryExists(dirname);
+            Files.createDirectories(dirname);
             writeCompressedContent(tempPath, content);
             moveToFinalLocation(tempPath, objectPath);
         } catch (IOException e) {
             cleanupTempFile(tempPath);
+            logger.error("Failed to write object to database", e);
             throw e;
         }
     }
@@ -140,10 +102,6 @@ public class Database {
     private Path constructObjectPath(String oid) {
         return dbPath.resolve(oid.substring(0, 2))
                 .resolve(oid.substring(2));
-    }
-
-    private void ensureDirectoryExists(Path directory) throws IOException {
-        Files.createDirectories(directory);
     }
 
     /**
@@ -239,20 +197,6 @@ public class Database {
         } finally {
             deflater.end();
         }
-    }
-
-    /**
-     * Converts an array of bytes into a hexadecimal string representation.
-     *
-     * @param bytes The byte array to convert. Must not be null.
-     * @return A string containing the hexadecimal representation of the bytes.
-     */
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            hexString.append(String.format("%02x", b & 0xFF));
-        }
-        return hexString.toString();
     }
 
 

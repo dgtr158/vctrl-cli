@@ -41,6 +41,19 @@ public class Workspace {
         }
     }
 
+    /**
+     * Retrieves a list of file paths contained within the workspace, excluding any files
+     * located in directories matching the reserved name for the root directory.
+     * The method traverses all files and directories in the workspace's root path
+     * and captures their absolute paths.
+     *
+     * If the root path of the workspace is not set, it logs a message and returns an empty list.
+     * In case of an I/O error during the operation, it logs the error message and also returns an empty list.
+     *
+     * @return a list of absolute file paths within the workspace, excluding files inside
+     *         the reserved root directory. Returns an empty list if the root path is unset
+     *         or if an I/O error occurs.
+     */
     // List all files in the workspace
     public List<String> listFiles() {
         if (rootPath == null) {
@@ -51,7 +64,9 @@ public class Workspace {
         try (Stream<Path> stream = Files.walk(rootPath)) {
 
             return stream
+                    .filter(path -> !path.equals(rootPath))
                     .map(Path::toString)
+                    .filter(path -> !path.contains(File.separator + DirectoryNames.ROOT_DIR_NAME))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             System.out.println("Error reading files: " + e.getMessage());

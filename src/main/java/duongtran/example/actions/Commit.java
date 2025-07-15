@@ -87,7 +87,7 @@ public class Commit {
                 ObjectStorage<byte[]> blob = new Blob(data);
                 database.store(blob);
                 entries.add(new Entry(
-                        path, blob.getOid()
+                        file.getName(), blob.getOid()
                 ));
             } else {
                 // TODO: Handle directory

@@ -1,7 +1,7 @@
 package duongtran.example;
 
-import duongtran.example.actions.Commit;
-import duongtran.example.actions.Init;
+import duongtran.example.actions.CommitAction;
+import duongtran.example.actions.InitAction;
 import duongtran.example.metadata.Workspace;
 import duongtran.example.utils.ActionConstants;
 import duongtran.example.utils.DirectoryNames;
@@ -26,11 +26,11 @@ public class Main {
         switch (command) {
             case ActionConstants.INIT:
                 String basePath = args.length == 2 ? args[1] : null;
-                Init.init(basePath);
+                InitAction.init(basePath);
                 break;
             case ActionConstants.COMMIT:
-                Commit commit = new Commit();
-                commit.execute();
+                CommitAction commitAction = new CommitAction();
+                commitAction.execute();
                 break;
             default:
                 String msg = MessageFormat.format("{0}: {1} is not a {2} command"

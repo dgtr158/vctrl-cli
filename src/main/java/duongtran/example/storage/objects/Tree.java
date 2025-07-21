@@ -7,16 +7,15 @@ import duongtran.example.utils.HexUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class Tree extends ObjectStorage<List<Entry>> {
+public class Tree extends ObjectStorage {
+    private final List<Entry> entries;
 
-    public Tree(List<Entry> entries) throws NoSuchAlgorithmException {
-        super(entries);
+    public Tree(List<Entry> entries) {
+        this.entries = entries;
+        entries.sort(Comparator.comparing(Entry::getName));
     }
 
     public ObjectType getType() {
@@ -24,12 +23,10 @@ public class Tree extends ObjectStorage<List<Entry>> {
     }
 
     @Override
-    protected byte[] getData(List<Entry> data) {
-        List<Entry> sortedEntries = new ArrayList<>(data);
-        sortedEntries.sort(Comparator.comparing(Entry::getName));
+    protected byte[] toBytes() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            for (Entry entry : sortedEntries) {
+            for (Entry entry : entries) {
                 String entryHeader = String.format("%s %s\0", Entry.MODE, entry.getName());
                 byte[] entryData = entryHeader.getBytes(StandardCharsets.ISO_8859_1);
                 out.write(entryData);

@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 
-public class Init {
+public class InitAction {
     public static void init(String pathName) {
         if (pathName == null) {
             pathName = DirectoryNames.WORKING_DIRECTORY;

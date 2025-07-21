@@ -1,30 +1,36 @@
 package duongtran.example.actions;
 
 import duongtran.example.metadata.Workspace;
+import duongtran.example.storage.CommitAuthor;
 import duongtran.example.storage.ObjectStorage;
 import duongtran.example.storage.objects.Blob;
 import duongtran.example.storage.Database;
+import duongtran.example.storage.objects.Commit;
 import duongtran.example.storage.objects.Entry;
 import duongtran.example.storage.objects.Tree;
+import duongtran.example.utils.Constants;
 import duongtran.example.utils.DirectoryNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Commit {
+public class CommitAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(Commit.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommitAction.class);
 
     private static final String ROOT_PATH = DirectoryNames.WORKING_DIRECTORY;
     private final Workspace workspace;
     private final Database database;
 
-    public Commit() {
+    public CommitAction() {
         this.workspace = Workspace.getInstance();
         this.database = initializeDatabase();
     }
@@ -84,7 +90,7 @@ public class Commit {
             File file = new File(path);
             if (!file.isDirectory()) {
                 byte[] data = workspace.readFile(path);
-                ObjectStorage<byte[]> blob = new Blob(data);
+                Blob blob = new Blob(data);
                 database.store(blob);
                 entries.add(new Entry(
                         file.getName(), blob.getOid()
@@ -95,9 +101,38 @@ public class Commit {
             }
         }
 
+        // Storing tree
         Tree tree = new Tree(entries);
         database.store(tree);
 
+        // Storing commit
+        String authorName = System.getenv(Constants.ENV_AUTHOR_KEY);
+        String authorEmail = System.getenv(Constants.ENV_EMAIL_KEY);
+        CommitAuthor author = new CommitAuthor(authorName, authorEmail, Instant.now());
+        System.out.println("Enter the commit message");
+        String message = getCommitMsg();
+
+        Commit commit = new Commit(author, tree, message);
+        database.store(commit);
+
+
+    }
+
+    /**
+     * Reads the commit message from standard input.
+     *
+     * @return the commit message read from standard input
+     * @throws IOException if an error occurs while reading from standard input
+     */
+    private String getCommitMsg() throws IOException {
+        StringBuilder message = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String line;
+            while ((line = reader.readLine()) != null && !line.equalsIgnoreCase("end")) {
+                message.append(line).append("\n");
+            }
+        }
+        return message.toString();
     }
 
 

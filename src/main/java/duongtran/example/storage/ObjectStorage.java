@@ -6,52 +6,45 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public abstract class ObjectStorage<T> {
+public abstract class ObjectStorage {
     private static final String HASH_ALGORITHM = "SHA-1";
 
-    private final String oid; // object ID
-    private final byte[] content; // formatted content for the object
-
-    public ObjectStorage(T data) throws NoSuchAlgorithmException {
-        this.content = formatContent(data);
-        this.oid = calculateOid();
-    }
+    private String oid; // object ID
 
     public String getOid() {
         return oid;
     }
 
-    public byte[] getContent() {
-        return content;
-    }
-
     /**
      * Calculates the object ID using SHA-1 hash.
-     * @return Hexadecimal string of the hash
+     *
      * @throws NoSuchAlgorithmException If SHA-1 is not available
      */
-    private String calculateOid() throws NoSuchAlgorithmException {
+    public void calculateOid(byte[] content) throws NoSuchAlgorithmException {
+        if (this.oid != null) {
+            return;
+        }
         MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
-        return HexUtil.bytesToHex(digest.digest(content));
+        this.oid = HexUtil.bytesToHex(digest.digest(content));
     }
 
-    protected byte[] formatContent(T data) {
+    protected byte[] formatContent() {
         // Get original content of the object
-        byte[] originalData = getData(data);
+        byte[] data = toBytes();
 
         // Header of the object
-        String header = String.format("%s %d\0", getType().toString(), originalData.length);
+        String header = String.format("%s %d\0", getType().toString(), data.length);
         byte[] headerData = header.getBytes(StandardCharsets.ISO_8859_1);
 
         // Create object content
-        byte[] content = new byte[headerData.length + originalData.length];
+        byte[] content = new byte[headerData.length + data.length];
         System.arraycopy(headerData, 0, content, 0, headerData.length);
-        System.arraycopy(originalData, 0, content, headerData.length, originalData.length);
+        System.arraycopy(data, 0, content, headerData.length, data.length);
 
         return content;
     }
 
-    protected abstract byte[] getData(T data);
+    protected abstract byte[] toBytes();
 
     public abstract ObjectType getType();
 }

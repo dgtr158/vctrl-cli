@@ -2,9 +2,8 @@ package duongtran.example.actions;
 
 import duongtran.example.metadata.Workspace;
 import duongtran.example.storage.CommitAuthor;
-import duongtran.example.storage.ObjectStorage;
-import duongtran.example.storage.objects.Blob;
 import duongtran.example.storage.Database;
+import duongtran.example.storage.objects.Blob;
 import duongtran.example.storage.objects.Commit;
 import duongtran.example.storage.objects.Entry;
 import duongtran.example.storage.objects.Tree;
@@ -13,10 +12,8 @@ import duongtran.example.utils.DirectoryNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -52,7 +49,7 @@ public class CommitAction {
      * Executes the commit operation for the workspace. This method commits all
      * files stored in the workspace by calling {@code storeWorkspaceFiles} and logs
      * the successfully committed files.
-     *
+     * <p>
      * If an error occurs during the process, an {@link IOException} is thrown with
      * a descriptive message and the underlying exception as its cause.
      *
@@ -72,13 +69,13 @@ public class CommitAction {
      * Stores all files from the workspace into the database. This method retrieves
      * the list of file paths from the workspace, reads the content of each file,
      * creates a {@link Blob} object for the file's data, and stores it in the database.
-     *
+     * <p>
      * Files contained in the workspace are iterated, and only regular files
      * are processed. For each valid file, its content is read
      * as a byte array and encapsulated in a {@link Blob} object, which is then
      * stored in the database using the {@code Database.store} method.
      *
-     * @throws IOException if an error occurs while listing, reading, or storing files.
+     * @throws IOException              if an error occurs while listing, reading, or storing files.
      * @throws NoSuchAlgorithmException if a required hashing algorithm is unavailable
      *                                  during the blob storage process.
      */
@@ -109,12 +106,23 @@ public class CommitAction {
         String authorName = System.getenv(Constants.ENV_AUTHOR_KEY);
         String authorEmail = System.getenv(Constants.ENV_EMAIL_KEY);
         CommitAuthor author = new CommitAuthor(authorName, authorEmail, Instant.now());
-        System.out.println("Enter the commit message");
+        System.out.println("Enter the commit messages:");
         String message = getCommitMsg();
 
         Commit commit = new Commit(author, tree, message);
         database.store(commit);
 
+        // Update HEAD
+        File rootPath = new File(ROOT_PATH, DirectoryNames.ROOT_DIR_NAME);
+        File headFile = new File(rootPath, "HEAD");
+        try (FileWriter writer = new FileWriter(headFile, StandardCharsets.UTF_8)) {
+            writer.write(commit.getOid());
+            writer.write(System.lineSeparator());
+        }
+
+        // Display the commit confirmation message
+        String firstLine = getFirstLine(message);
+        System.out.println(String.format("[(root-commit) %s] %s", commit.getOid(), firstLine));
 
     }
 
@@ -133,6 +141,15 @@ public class CommitAction {
             }
         }
         return message.toString();
+    }
+
+    private String getFirstLine(String message) {
+        if (message == null || message.trim().isEmpty()) {
+            return "";
+        }
+
+        String[] lines = message.split("\\r?\\n" );
+        return lines.length > 0 ? lines[0].trim() : "";
     }
 
 

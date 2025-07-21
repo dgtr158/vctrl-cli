@@ -38,6 +38,9 @@ build/
 ### Mac OS ###
 .DS_Store
 
-### Log ###
+# Ignore logs directory
 logs/
+logs/*
+
+# Ignore all log files
 *.log

@@ -27,7 +27,7 @@ public class Tree extends ObjectStorage {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             for (Entry entry : entries) {
-                String entryHeader = String.format("%s %s\0", Entry.MODE, entry.getName());
+                String entryHeader = String.format("%s %s\0", entry.getMode(), entry.getName());
                 byte[] entryData = entryHeader.getBytes(StandardCharsets.ISO_8859_1);
                 out.write(entryData);
 

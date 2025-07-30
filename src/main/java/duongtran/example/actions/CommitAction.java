@@ -14,8 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -92,7 +92,7 @@ public class CommitAction {
                 Blob blob = new Blob(data);
                 database.store(blob);
                 entries.add(new Entry(
-                        file.getName(), blob.getOid()
+                        file.getName(), blob.getOid(), Files.isExecutable(Path.of(path))
                 ));
             } else {
                 // TODO: Handle directory
@@ -120,12 +120,6 @@ public class CommitAction {
 
         // Update HEAD
         ref.updateHead(commit.getOid());
-//        File rootPath = new File(ROOT_PATH, DirectoryNames.ROOT_DIR_NAME);
-//        File headFile = new File(rootPath, "HEAD");
-//        try (FileWriter writer = new FileWriter(headFile, StandardCharsets.UTF_8)) {
-//            writer.write(commit.getOid());
-//            writer.write(System.lineSeparator());
-//        }
 
         // Display the commit confirmation message
         String firstLine = getFirstLine(message);

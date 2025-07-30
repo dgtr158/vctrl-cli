@@ -76,6 +76,9 @@ public class Database {
      */
     private void writeObject(String oid, byte[] content) throws IOException {
         Path objectPath = constructObjectPath(oid);
+        if (Files.exists(objectPath)) {
+            return;
+        }
         Path dirname = objectPath.getParent();
         Path tempPath = dirname.resolve(generateTempName());
 

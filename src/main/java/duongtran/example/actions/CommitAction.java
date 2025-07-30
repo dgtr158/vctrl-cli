@@ -1,6 +1,7 @@
 package duongtran.example.actions;
 
 import duongtran.example.metadata.Workspace;
+import duongtran.example.references.Refs;
 import duongtran.example.storage.CommitAuthor;
 import duongtran.example.storage.Database;
 import duongtran.example.storage.objects.Blob;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class CommitAction {
      *
      * @return a new Database instance configured with the appropriate path.
      */
-    private Database initializeDatabase() {
+    protected Database initializeDatabase() {
         File gitPath = new File(ROOT_PATH, DirectoryNames.ROOT_DIR_NAME);
         File dbPath = new File(gitPath, DirectoryNames.OBJECTS);
         return new Database(dbPath.toPath());
@@ -106,23 +108,28 @@ public class CommitAction {
         String authorName = System.getenv(Constants.ENV_AUTHOR_KEY);
         String authorEmail = System.getenv(Constants.ENV_EMAIL_KEY);
         CommitAuthor author = new CommitAuthor(authorName, authorEmail, Instant.now());
+
+        Refs ref = new Refs();
+        String parentId = ref.readHead();
+
         System.out.println("Enter the commit messages:");
         String message = getCommitMsg();
 
-        Commit commit = new Commit(author, tree, message);
+        Commit commit = new Commit(author, tree, message, parentId);
         database.store(commit);
 
         // Update HEAD
-        File rootPath = new File(ROOT_PATH, DirectoryNames.ROOT_DIR_NAME);
-        File headFile = new File(rootPath, "HEAD");
-        try (FileWriter writer = new FileWriter(headFile, StandardCharsets.UTF_8)) {
-            writer.write(commit.getOid());
-            writer.write(System.lineSeparator());
-        }
+        ref.updateHead(commit.getOid());
+//        File rootPath = new File(ROOT_PATH, DirectoryNames.ROOT_DIR_NAME);
+//        File headFile = new File(rootPath, "HEAD");
+//        try (FileWriter writer = new FileWriter(headFile, StandardCharsets.UTF_8)) {
+//            writer.write(commit.getOid());
+//            writer.write(System.lineSeparator());
+//        }
 
         // Display the commit confirmation message
         String firstLine = getFirstLine(message);
-        System.out.println(String.format("[(root-commit) %s] %s", commit.getOid(), firstLine));
+        System.out.printf("[(root-commit) %s] %s\n", commit.getOid(), firstLine);
 
     }
 

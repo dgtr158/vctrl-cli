@@ -11,17 +11,22 @@ public class Commit extends ObjectStorage {
     private final CommitAuthor author;
     private final Tree tree;
     private final String message;
+    private final String parentId;
 
-    public Commit(CommitAuthor author, Tree tree, String message) {
+    public Commit(CommitAuthor author, Tree tree, String message, String parentId) {
         this.author = author;
         this.tree = tree;
         this.message = message;
+        this.parentId = parentId;
     }
 
     @Override
     protected byte[] toBytes() {
         StringBuilder bodyBuilder = new StringBuilder();
         bodyBuilder.append("tree ").append(tree.getOid()).append("\n");
+        if (parentId != null) {
+            bodyBuilder.append("parent ").append(parentId).append("\n");
+        }
         bodyBuilder.append("author ").append(author.toString()).append("\n");
         bodyBuilder.append("committer ").append(author.toString()).append("\n");
         bodyBuilder.append("\n");

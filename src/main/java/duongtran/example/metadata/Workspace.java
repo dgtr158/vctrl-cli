@@ -41,6 +41,10 @@ public class Workspace {
         }
     }
 
+    public Path getRootPath() {
+        return rootPath;
+    }
+
     /**
      * Retrieves a list of file paths contained within the workspace, excluding any files
      * located in directories matching the reserved name for the root directory.
@@ -55,18 +59,17 @@ public class Workspace {
      *         or if an I/O error occurs.
      */
     // List all files in the workspace
-    public List<String> listFiles() {
+    public List<Path> listFiles() {
         if (rootPath == null) {
             System.out.println("Workspace root is not set.");
             return new ArrayList<>();
         }
 
-        try (Stream<Path> stream = Files.walk(rootPath)) {
+        try (Stream<Path> stream = Files.list(rootPath)) {
 
             return stream
                     .filter(path -> !path.equals(rootPath))
-                    .map(Path::toString)
-                    .filter(path -> !path.contains(File.separator + DirectoryNames.ROOT_DIR_NAME))
+                    .filter(path -> !path.getFileName().toString().contains(File.separator + DirectoryNames.ROOT_DIR_NAME))
                     .collect(Collectors.toList());
         } catch (IOException e) {
             System.out.println("Error reading files: " + e.getMessage());

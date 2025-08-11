@@ -82,27 +82,8 @@ public class CommitAction {
      *                                  during the blob storage process.
      */
     private void storeWorkspaceFiles() throws IOException, NoSuchAlgorithmException {
-        List<String> filePaths = workspace.listFiles();
-        List<Entry> entries = new ArrayList<>();
 
-        for (String path : filePaths) {
-            File file = new File(path);
-            if (!file.isDirectory()) {
-                byte[] data = workspace.readFile(path);
-                Blob blob = new Blob(data);
-                database.store(blob);
-                entries.add(new Entry(
-                        file.getName(), blob.getOid(), Files.isExecutable(Path.of(path))
-                ));
-            } else {
-                // TODO: Handle directory
-                // Recursively walk through the directory, storing blob and tree if needed
-            }
-        }
-
-        // Storing tree
-        Tree tree = new Tree(entries);
-        database.store(tree);
+        Tree tree = Tree.buildTree(workspace.getRootPath(), database);
 
         // Storing commit
         String authorName = System.getenv(Constants.ENV_AUTHOR_KEY);

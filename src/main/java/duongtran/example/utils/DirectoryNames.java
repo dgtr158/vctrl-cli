@@ -7,4 +7,5 @@ public class DirectoryNames {
     public static final String ROOT_DIR_NAME = ".vctrl";
     public static final String OBJECTS = "objects";
     public static final String REFS = "refs";
+    public static final String INDEX = "index";
 }

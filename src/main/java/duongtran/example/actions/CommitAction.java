@@ -25,26 +25,12 @@ public class CommitAction {
 
     private static final Logger logger = LoggerFactory.getLogger(CommitAction.class);
 
-    private static final String ROOT_PATH = DirectoryNames.WORKING_DIRECTORY;
     private final Workspace workspace;
     private final Database database;
 
     public CommitAction() {
         this.workspace = Workspace.getInstance();
-        this.database = initializeDatabase();
-    }
-
-    /**
-     * Initializes and returns a new instance of the Database.
-     * The database is configured to use a path derived from the root directory
-     * and the objects directory.
-     *
-     * @return a new Database instance configured with the appropriate path.
-     */
-    protected Database initializeDatabase() {
-        File gitPath = new File(ROOT_PATH, DirectoryNames.ROOT_DIR_NAME);
-        File dbPath = new File(gitPath, DirectoryNames.OBJECTS);
-        return new Database(dbPath.toPath());
+        this.database = Database.getInstance();
     }
 
     /**

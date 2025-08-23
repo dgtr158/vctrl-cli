@@ -1,8 +1,10 @@
 package duongtran.example;
 
+import duongtran.example.actions.AddAction;
 import duongtran.example.actions.CommitAction;
 import duongtran.example.actions.InitAction;
 import duongtran.example.metadata.Workspace;
+import duongtran.example.storage.Database;
 import duongtran.example.utils.ActionConstants;
 import duongtran.example.utils.DirectoryNames;
 
@@ -21,7 +23,9 @@ public class Main {
         String command = args[0];
 
         // Initialize Workspace at startup
+        // TODO: Remove after done storing changes part
         Workspace.initialize();
+        Database.initialize();
 
         switch (command) {
             case ActionConstants.INIT:
@@ -32,6 +36,12 @@ public class Main {
                 CommitAction commitAction = new CommitAction();
                 commitAction.execute();
                 break;
+            case ActionConstants.ADD:
+                AddAction addAction = new AddAction();
+                addAction.execute();
+                break;
+
+
             default:
                 String msg = MessageFormat.format("{0}: {1} is not a {2} command"
                         , DirectoryNames.PROJECT_NAME

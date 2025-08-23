@@ -5,7 +5,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
-public class Lockfile {
+public class Lockfile implements AutoCloseable {
 
     private final Path targetFile;
     private final Path lockFile;
@@ -59,5 +59,10 @@ public class Lockfile {
         if (lockStream == null) {
             throw new IllegalStateException("Lock not acquired on: " + lockFile);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        rollback();
     }
 }

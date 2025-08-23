@@ -2,12 +2,14 @@ package duongtran.example.storage;
 
 import duongtran.example.storage.objects.Blob;
 import duongtran.example.storage.objects.Tree;
+import duongtran.example.utils.DirectoryNames;
 import duongtran.example.utils.HexUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -23,15 +25,30 @@ import java.util.zip.Deflater;
  * Responsible for storing content in .vctrl/objects
  */
 public class Database {
+    private static Database instance;
+    private Path dbPath;
+
     private static final Logger logger = LoggerFactory.getLogger(Database.class);
     
     private static final String TEMP_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final int TEMP_NAME_LENGTH = 6;
     private static final String TEMP_PREFIX = "tmp_obj_";
     private static final int BUFFER_SIZE = 8192; // Increased buffer size for better performance
-    private static final String HASH_ALGORITHM = "SHA-1";
 
-    private final Path dbPath;
+    private Database() {}
+
+    public static void initialize() {
+        File gitPath = new File(DirectoryNames.WORKING_DIRECTORY, DirectoryNames.ROOT_DIR_NAME);
+        File dbPath = new File(gitPath, DirectoryNames.OBJECTS);
+        getInstance().dbPath = dbPath.toPath();
+    }
+
+    public static Database getInstance() {
+        if (instance == null) {
+            instance = new Database();
+        }
+        return instance;
+    }
 
 
     /**

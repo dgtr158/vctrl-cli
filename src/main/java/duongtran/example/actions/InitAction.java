@@ -1,6 +1,7 @@
 package duongtran.example.actions;
 
 import duongtran.example.metadata.Workspace;
+import duongtran.example.storage.Database;
 import duongtran.example.utils.DirectoryNames;
 
 import java.io.File;
@@ -13,10 +14,16 @@ public class InitAction {
         if (pathName == null) {
             pathName = DirectoryNames.WORKING_DIRECTORY;
         }
+
+        // Initialize
+        // TODO: uncomment after complete storing part
+//        Workspace.initialize();
+//        Database.initialize();
+
         // Define .vctrl directory
         File rootDir = new File(pathName, DirectoryNames.ROOT_DIR_NAME);
 
-        // Define subdirectories inside .oit directory
+        // Define subdirectories inside .vctrl directory
         File objectsDir = new File(rootDir, DirectoryNames.OBJECTS);
         File refsDir = new File(rootDir, DirectoryNames.REFS);
 

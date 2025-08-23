@@ -25,20 +25,15 @@ public class Refs {
         this.path = Paths.get(DirectoryNames.WORKING_DIRECTORY, DirectoryNames.ROOT_DIR_NAME, pathName);
     }
 
-    public void updateHead(String objectId) throws IOException {
+    public void updateHead(String objectId) {
         Path headPath = getHeadPath();
-        Lockfile lockfile = new Lockfile(headPath);
-        try {
+
+        try (Lockfile lockfile = new Lockfile(headPath)) {
             lockfile.acquire();
             lockfile.write(objectId + "\n");
             lockfile.commit();
-        } catch (IOException ex) {
-            log.warn("Failed to acquire lock: {}\n Retry later", ex.getMessage());
-            try {
-                lockfile.rollback();
-            } catch (IOException rollbackErr) {
-                log.error("Failed to rollback lock file: {}", rollbackErr.getMessage());
-            }
+        } catch (Exception e) {
+            log.warn("Failed to acquire lock: {}\n Retry later", e.getMessage());
         }
     }
 
